@@ -12,18 +12,18 @@
 
     <!-- Header -->
     <header class="bg-gray-800 shadow-lg">
-        <div class="container mx-auto flex justify-between items-center px-6 py-4">
-            <h1 class="text-2xl font-bold text-teal-400">🎬 Abhiflix</h1>
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-6 py-4 gap-4 md:gap-0">
+            <h1 class="text-2xl font-bold text-teal-400 text-center md:text-left">🎬 Abhiflix</h1>
 
-            <div class="flex items-center gap-3">
-                <input id="searchInput" type="text" placeholder="Search movie..." class="px-4 py-2 rounded-md text-black focus:outline-none w-48 md:w-72">
-                <button onclick="searchMovies()" class="bg-teal-500 hover:bg-teal-600 px-4 py-2 rounded-md">Search</button>
+            <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                <input id="searchInput" type="text" placeholder="Search movie..." class="px-4 py-2 rounded-md text-black focus:outline-none w-full sm:w-48 md:w-72">
+                <button onclick="searchMovies()" class="bg-teal-500 hover:bg-teal-600 px-4 py-2 rounded-md w-full sm:w-auto">Search</button>
             </div>
         </div>
 
         <!-- Tabs -->
         <div class="bg-gray-700">
-            <div class="container mx-auto px-6 py-2 flex flex-wrap gap-3 justify-center">
+            <div class="container mx-auto px-4 py-2 flex flex-wrap gap-2 justify-center">
                 <button onclick="getCategory('trending')" class="tab-btn px-3 py-1 rounded-md bg-teal-500">Trending</button>
                 <button onclick="getCategory('popular')" class="tab-btn px-3 py-1 rounded-md hover:bg-teal-500">Popular</button>
                 <button onclick="getCategory('top_rated')" class="tab-btn px-3 py-1 rounded-md hover:bg-teal-500">Top Rated</button>
@@ -33,7 +33,7 @@
     </header>
 
     <!-- Genre Filter -->
-    <div class="container mx-auto px-6 py-4 flex flex-wrap gap-2 justify-center bg-gray-800 rounded-b-lg">
+    <div class="container mx-auto px-4 py-4 flex flex-wrap gap-2 justify-center bg-gray-800 rounded-b-lg">
         <button onclick="filterGenre(28)" class="genre-btn px-2 py-1 bg-gray-600 rounded-md hover:bg-teal-500">Action</button>
         <button onclick="filterGenre(35)" class="genre-btn px-2 py-1 bg-gray-600 rounded-md hover:bg-teal-500">Comedy</button>
         <button onclick="filterGenre(27)" class="genre-btn px-2 py-1 bg-gray-600 rounded-md hover:bg-teal-500">Horror</button>
@@ -43,9 +43,9 @@
     </div>
 
     <!-- Movie Section -->
-    <main class="container mx-auto px-6 py-8">
+    <main class="container mx-auto px-4 py-8">
         <h2 id="sectionTitle" class="text-3xl font-semibold mb-6 text-center">🔥 Trending Movies</h2>
-        <div id="movie-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6"></div>
+        <div id="movie-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6"></div>
     </main>
 
     <!-- Trailer Modal -->
@@ -57,11 +57,10 @@
     </div>
 
     <script>
-        const API_KEY = "3207763a6b035e30d529f20b85bcccb4"; // 👈 apni TMDB API key
+        const API_KEY = "3207763a6b035e30d529f20b85bcccb4"; // TMDB API Key
         const IMAGE_URL = "https://image.tmdb.org/t/p/w500";
         let currentMovies = [];
 
-        // Fetch default trending movies
         async function getCategory(category = "trending") {
             let url;
             if (category === "trending") {
@@ -77,13 +76,12 @@
             showMovies(data.results);
         }
 
-        // Show movies
         function showMovies(movies) {
             const container = document.getElementById("movie-container");
             container.innerHTML = movies.map(movie => `
         <div onclick="getTrailer(${movie.id})"
              class="cursor-pointer bg-gray-800 hover:scale-105 transition transform rounded-lg overflow-hidden shadow-lg">
-          <img src="${IMAGE_URL + movie.poster_path}" alt="${movie.title}" class="w-full h-72 object-cover">
+          <img src="${IMAGE_URL + movie.poster_path}" alt="${movie.title}" class="w-full h-72 md:h-80 object-cover">
           <div class="p-3 text-center">
             <h3 class="text-lg font-semibold">${movie.title}</h3>
             <p class="text-yellow-400 mt-1">⭐ ${movie.vote_average.toFixed(1)}</p>
@@ -92,14 +90,12 @@
       `).join('');
         }
 
-        // Filter by genre
         function filterGenre(genreId) {
             const filtered = currentMovies.filter(movie => movie.genre_ids.includes(genreId));
             showMovies(filtered);
             document.getElementById("sectionTitle").innerText = `🎬 Filtered by Genre`;
         }
 
-        // Search movies
         async function searchMovies() {
             const query = document.getElementById("searchInput").value.trim();
             if (!query) return getCategory();
@@ -110,7 +106,6 @@
             showMovies(data.results);
         }
 
-        // Trailer modal
         async function getTrailer(id) {
             const res = await fetch(`https://api.themoviedb.org/3/movie/${id}/videos?api_key=${API_KEY}`);
             const data = await res.json();
@@ -135,5 +130,3 @@
 </body>
 
 </html>
-
-
