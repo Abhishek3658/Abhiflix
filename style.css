@@ -1,0 +1,13 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    /* Tailwind ke dark gray-900 jaisa */
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.carousel-height {
+    height: 90vh;
+    /* jitni chaho utni */
+}
