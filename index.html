@@ -62,14 +62,6 @@
         const IMAGE_URL = "https://image.tmdb.org/t/p/w500";
         let currentMovies = [];
 
-        // Dark mode toggle
-        const darkModeBtn = document.getElementById("darkModeToggle");
-        darkModeBtn.addEventListener('click', () => {
-            document.body.classList.toggle("bg-gray-900");
-            document.body.classList.toggle("bg-white");
-            document.body.classList.toggle("text-black");
-        });
-
         // Fetch default trending movies
         async function getCategory(category = "trending") {
             let url;
@@ -144,3 +136,4 @@
 </body>
 
 </html>
+
