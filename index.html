@@ -1,675 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Abhiflix — Pro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* small helpers */
-        
-        .glass {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(4px);
-        }
-        
-        .card-hover {
-            transition: transform .22s ease, box-shadow .22s ease;
-        }
-        
-        .card-hover:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 12px 30px rgba(2, 6, 23, 0.6);
-        }
-        /* ensure modal scrollbar hidden background */
-        
-        body.modal-open {
-            overflow: hidden;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Abhiflix — Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glass {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(4px);
+    }
+    .card-hover {
+      transition: transform .22s ease, box-shadow .22s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 30px rgba(2,6,23,0.6);
+    }
+    body.modal-open { overflow:hidden; }
+  </style>
 </head>
-
 <body class="bg-gray-900 text-white min-h-screen">
 
-    <!-- Header -->
-    <header class="bg-gradient-to-r from-slate-900 via-gray-900 to-black sticky top-0 z-40 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4 py-4">
-                <div class="flex items-center gap-4 w-full md:w-auto">
-                    <h1 class="text-2xl sm:text-3xl font-extrabold text-teal-400">🎬 Abhiflix Pro</h1>
-
-                    <div class="hidden sm:flex items-center gap-2 ml-2">
-                        <button onclick="openWatchlist()" class="px-3 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-sm">My Watchlist (<span id="watchlistCount">0</span>)</button>
-                        <button id="darkToggle" class="px-3 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-sm">🌙</button>
-                    </div>
-                </div>
-
-                <div class="w-full md:w-2/5">
-                    <div class="flex w-full gap-2">
-                        <input id="searchInput" type="search" placeholder="Search movies, actors, titles..." class="w-full px-4 py-2 rounded-md text-gray-900 focus:outline-none" />
-                        <button id="searchBtn" class="px-4 py-2 rounded-md bg-teal-500 hover:bg-teal-600">Search</button>
-                    </div>
-                    <div class="flex items-center gap-2 mt-2 text-xs text-gray-300">
-                        <span>Sort:</span>
-                        <select id="sortSelect" class="rounded-md bg-slate-800 px-2 py-1">
-              <option value="popularity.desc">Popularity</option>
-              <option value="vote_average.desc">Rating</option>
-              <option value="release_date.desc">Release Date</option>
-            </select>
-
-                        <span class="ml-4">View:</span>
-                        <button onclick="setView('grid')" id="viewGrid" class="px-2 py-1 rounded-md bg-slate-800">Grid</button>
-                        <button onclick="setView('list')" id="viewList" class="px-2 py-1 rounded-md bg-slate-800">List</button>
-                    </div>
-                </div>
-            </div>
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-slate-900 via-gray-900 to-black sticky top-0 z-40 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4 py-4">
+        <div class="flex items-center gap-4 w-full md:w-auto">
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-teal-400">🎬 Abhiflix Pro</h1>
+          <div class="hidden sm:flex items-center gap-2 ml-2">
+            <button onclick="openWatchlist()" class="px-3 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-sm">My Watchlist (<span id="watchlistCount">0</span>)</button>
+            <button id="darkToggle" class="px-3 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-sm">🌙</button>
+          </div>
         </div>
 
-        <!-- Tabs row -->
-        <div class="border-t border-slate-800">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex gap-3 overflow-x-auto py-3">
-                    <button onclick="changeCategory('trending')" class="category-btn px-3 py-1 rounded-md bg-teal-500 text-sm">Trending</button>
-                    <button onclick="changeCategory('popular')" class="category-btn px-3 py-1 rounded-md hover:bg-slate-700 text-sm">Popular</button>
-                    <button onclick="changeCategory('top_rated')" class="category-btn px-3 py-1 rounded-md hover:bg-slate-700 text-sm">Top Rated</button>
-                    <button onclick="changeCategory('upcoming')" class="category-btn px-3 py-1 rounded-md hover:bg-slate-700 text-sm">Upcoming</button>
-
-                    <div class="ml-4 flex items-center gap-2">
-                        <span class="text-sm text-gray-400">Genres:</span>
-                        <div id="genreList" class="flex gap-2 overflow-x-auto"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h2 id="sectionTitle" class="text-2xl font-bold mb-4">🔥 Trending Movies</h2>
-
-        <!-- content -->
-        <div id="moviesWrapper" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            <!-- cards injected here -->
-        </div>
-
-        <div class="flex justify-center mt-6">
-            <button id="loadMoreBtn" class="px-6 py-2 rounded-md bg-slate-800 hover:bg-slate-700">Load more</button>
-        </div>
-    </main>
-
-    <!-- Details Modal (big IMDB-like card) -->
-    <div id="detailsModal" class="hidden fixed inset-0 z-50 flex items-start justify-center py-10 px-4 overflow-y-auto">
-        <div id="detailsBackdrop" class="absolute inset-0 bg-black/70"></div>
-        <div class="relative w-full max-w-6xl bg-slate-900 rounded-xl glass overflow-hidden shadow-2xl z-60">
-            <div class="flex flex-col lg:flex-row">
-                <!-- poster -->
-                <div class="w-full lg:w-4/12 relative">
-                    <img id="detailPoster" src="" alt="poster" class="w-full h-96 lg:h-auto object-cover">
-                    <div class="p-4">
-                        <div class="flex gap-2 items-center">
-                            <button id="watchBtn" class="px-3 py-2 bg-teal-500 rounded-md">▶ Watch</button>
-                            <button id="addWatchlistBtn" class="px-3 py-2 bg-slate-800 rounded-md">+ Watchlist</button>
-                            <span id="runtime" class="ml-auto text-gray-300"></span>
-                        </div>
-                        <div class="mt-3 text-gray-400 text-sm" id="metaSmall"></div>
-                    </div>
-                </div>
-
-                <!-- details -->
-                <div class="w-full lg:w-8/12 p-6">
-                    <div class="flex items-start gap-4">
-                        <div>
-                            <h3 id="detailTitle" class="text-2xl font-extrabold"></h3>
-                            <p id="tagline" class="italic text-gray-400"></p>
-                            <div class="flex gap-3 mt-2 items-center">
-                                <div class="text-yellow-400 font-semibold" id="rating"></div>
-                                <div class="text-sm text-gray-300" id="release"></div>
-                                <div class="text-sm text-gray-300" id="genresSmall"></div>
-                            </div>
-                        </div>
-                        <div class="ml-auto flex gap-2">
-                            <button onclick="copyShare()" class="px-3 py-2 rounded-md bg-slate-800">Share</button>
-                            <button onclick="closeDetails()" class="px-3 py-2 rounded-md bg-red-600">Close</button>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <h4 class="text-lg font-semibold">Overview</h4>
-                        <p id="overview" class="text-gray-300 mt-2"></p>
-                    </div>
-
-                    <div class="mt-6">
-                        <h4 class="text-lg font-semibold">Cast</h4>
-                        <div id="castList" class="flex gap-3 overflow-x-auto py-3"></div>
-                    </div>
-
-                    <div class="mt-6">
-                        <h4 class="text-lg font-semibold">Crew</h4>
-                        <div id="crewList" class="flex gap-3 overflow-x-auto py-3 text-sm text-gray-300"></div>
-                    </div>
-
-                    <div class="mt-6">
-                        <h4 class="text-lg font-semibold">Videos</h4>
-                        <div id="videoList" class="flex gap-3 overflow-x-auto py-3"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Watch Modal (Archive embed or Youtube) -->
-    <div id="watchModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-        <div class="bg-black w-full max-w-5xl rounded-md overflow-hidden relative">
-            <button onclick="closeWatch()" class="absolute top-3 right-3 z-40 bg-red-600 px-3 py-1 rounded">X</button>
-            <div id="watchArea" class="w-full h-[60vh] bg-black flex items-center justify-center">
-                <!-- iframe injected -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Watchlist Drawer -->
-    <div id="watchlistDrawer" class="fixed right-0 top-0 h-full w-96 bg-slate-900 text-white shadow-xl transform translate-x-full transition-transform z-50">
-        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-            <h3 class="text-lg font-bold">My Watchlist</h3>
-            <button onclick="closeWatchlist()" class="px-3 py-1 bg-red-600 rounded">Close</button>
-        </div>
-        <div id="watchlistItems" class="p-4 overflow-y-auto h-[calc(100%-64px)]"></div>
-    </div>
-
-    <script>
-        /* ============================
-                   CONFIG — replace your key
-                   ============================ */
-        const API_KEY = "3207763a6b035e30d529f20b85bcccb4"; // <<-- REPLACE with your TMDB API KEY
-        const IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
-        const BASE = "https://api.themoviedb.org/3";
-
-        /* ============================
-           App State
-           ============================ */
-        let page = 1;
-        let currentCategory = "trending";
-        let currentQuery = "";
-        let currentGenre = null;
-        let sortBy = "popularity.desc";
-        let viewMode = "grid"; // or 'list'
-        let currentMovies = [];
-
-        /* ============================
-           Helpers
-           ============================ */
-        function el(sel) {
-            return document.querySelector(sel);
-        }
-
-        function elAll(sel) {
-            return document.querySelectorAll(sel);
-        }
-
-        function show(elm) {
-            elm.classList.remove('hidden');
-            document.body.classList.add('modal-open');
-        }
-
-        function hide(elm) {
-            elm.classList.add('hidden');
-            document.body.classList.remove('modal-open');
-        }
-
-        /* ============================
-           Init: fetch genres + first category
-           ============================ */
-        document.addEventListener('DOMContentLoaded', async() => {
-            if (!API_KEY || API_KEY.includes("PASTE")) {
-                alert("Please open the code and replace API_KEY with your TMDB API key.");
-            }
-            attachUI();
-            await loadGenres();
-            await loadInitial();
-            updateWatchlistCount();
-        });
-
-        /* ============================
-           Attach UI events
-           ============================ */
-        function attachUI() {
-            el('#searchBtn').addEventListener('click', () => {
-                page = 1;
-                searchMovies();
-            });
-            el('#searchInput').addEventListener('keydown', e => {
-                if (e.key === 'Enter') {
-                    page = 1;
-                    searchMovies();
-                }
-            });
-            el('#loadMoreBtn').addEventListener('click', () => {
-                page++;
-                loadMovies();
-            });
-            el('#sortSelect').addEventListener('change', (e) => {
-                sortBy = e.target.value;
-                page = 1;
-                loadMovies(true);
-            });
-            el('#darkToggle').addEventListener('click', toggleDark);
-        }
-
-        /* ============================
-           Dark mode simple toggle
-           ============================ */
-        function toggleDark() {
-            const body = document.body;
-            body.classList.toggle('bg-white');
-            body.classList.toggle('text-black');
-            body.classList.toggle('bg-gray-900');
-            body.classList.toggle('text-white');
-        }
-
-        /* ============================
-           Genres
-           ============================ */
-        async function loadGenres() {
-            try {
-                const res = await fetch(`${BASE}/genre/movie/list?api_key=${API_KEY}&language=en-US`);
-                const data = await res.json();
-                const list = data.genres || [];
-                const container = el('#genreList');
-                container.innerHTML = list.map(g => `<button onclick="selectGenre(${g.id},'${g.name}')" class="px-2 py-1 rounded-md bg-slate-800 text-sm hover:bg-teal-500">${g.name}</button>`).join('');
-            } catch (err) {
-                console.error("Genres load failed", err);
-            }
-        }
-
-        function selectGenre(id, name) {
-            currentGenre = {
-                id,
-                name
-            };
-            document.getElementById('sectionTitle').innerText = `🎬 ${name}`;
-            page = 1;
-            loadMovies(true);
-        }
-
-        /* ============================
-           Categories & Loading
-           ============================ */
-        function changeCategory(cat) {
-            currentCategory = cat;
-            currentQuery = "";
-            currentGenre = null;
-            page = 1;
-            el('#searchInput').value = "";
-            document.getElementById('sectionTitle').innerText = (cat === 'trending') ? '🔥 Trending Movies' : `🎬 ${cat.replace('_',' ').toUpperCase()}`;
-            loadMovies(true);
-        }
-
-        async function loadInitial() {
-            page = 1;
-            await loadMovies(true);
-        }
-
-        /* build URL depending on category / search */
-        function buildURL() {
-            if (currentQuery) {
-                return `${BASE}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(currentQuery)}&page=${page}&sort_by=${sortBy}`;
-            }
-            if (currentCategory === 'trending') {
-                return `${BASE}/trending/movie/week?api_key=${API_KEY}&page=${page}`;
-            } else {
-                return `${BASE}/movie/${currentCategory}?api_key=${API_KEY}&page=${page}&sort_by=${sortBy}`;
-            }
-        }
-
-        /* main loader */
-        async function loadMovies(reset = false) {
-            try {
-                el('#loadMoreBtn').innerText = 'Loading...';
-                const url = buildURL();
-                const res = await fetch(url);
-                const data = await res.json();
-                let movies = data.results || [];
-
-                // apply client-side genre filter if selected
-                if (currentGenre && currentGenre.id) {
-                    movies = movies.filter(m => m.genre_ids && m.genre_ids.includes(currentGenre.id));
-                }
-
-                if (reset) {
-                    currentMovies = movies;
-                    renderMovies(movies, true);
-                } else {
-                    currentMovies = [...currentMovies, ...movies];
-                    renderMovies(movies, false);
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Failed to load movies. Check console.");
-            } finally {
-                el('#loadMoreBtn').innerText = 'Load more';
-            }
-        }
-
-        /* search */
-        let searchDebounce;
-
-        function searchMovies() {
-            clearTimeout(searchDebounce);
-            searchDebounce = setTimeout(async() => {
-                currentQuery = el('#searchInput').value.trim();
-                page = 1;
-                await loadMovies(true);
-                if (!currentQuery) {
-                    document.getElementById('sectionTitle').innerText = '🔥 Trending Movies';
-                } else {
-                    document.getElementById('sectionTitle').innerText = `🔍 Results for "${currentQuery}"`;
-                }
-            }, 350);
-        }
-
-        /* set view */
-        function setView(v) {
-            viewMode = v;
-            // simple visual; you can expand to change markup
-            if (v === 'list') {
-                el('#moviesWrapper').classList.remove('grid');
-                el('#moviesWrapper').classList.add('block');
-            } else {
-                el('#moviesWrapper').classList.add('grid');
-                el('#moviesWrapper').classList.remove('block');
-            }
-        }
-
-        /* render */
-        function renderMovies(movies, reset) {
-            const container = el('#moviesWrapper');
-            if (reset) container.innerHTML = '';
-            const html = movies.map(m => movieCardHTML(m)).join('');
-            if (viewMode === 'list') {
-                container.insertAdjacentHTML('beforeend', '<div class="space-y-4">' + html + '</div>');
-            } else {
-                container.insertAdjacentHTML('beforeend', html);
-            }
-        }
-
-        /* movie card markup */
-        function movieCardHTML(m) {
-            const title = m.title || m.name || "Untitled";
-            const poster = m.poster_path ? IMAGE_BASE + m.poster_path : 'https://via.placeholder.com/500x750?text=No+Image';
-            const rating = m.vote_average ? m.vote_average.toFixed(1) : '—';
-            const overview = (m.overview && m.overview.length > 140) ? m.overview.slice(0, 140) + '...' : (m.overview || 'No overview');
-
-            return `
-  <div class="bg-slate-800 rounded-md overflow-hidden card-hover card cursor-pointer" onclick="openDetails(${m.id})">
-    <img src="${poster}" alt="${escapeHtml(title)}" class="w-full h-72 object-cover">
-    <div class="p-3">
-      <div class="flex items-start gap-2">
-        <h3 class="font-semibold text-sm line-clamp-2">${escapeHtml(title)}</h3>
-        <div class="ml-auto text-yellow-400 font-semibold text-sm">${rating}</div>
-      </div>
-      <p class="text-xs text-gray-300 mt-2">${escapeHtml(overview)}</p>
-    </div>
-  </div>`;
-        }
-
-        /* escape helper */
-        function escapeHtml(s) {
-            return String(s || '').replace(/[&<>"]/g, c => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;'
-            }[c]));
-        }
-
-        /* ========== DETAILS (IMDB-style) ========== */
-        async function openDetails(id) {
-            try {
-                // fetch details, credits, videos
-                const [dRes, creditsRes, videosRes] = await Promise.all([
-                    fetch(`${BASE}/movie/${id}?api_key=${API_KEY}&language=en-US`),
-                    fetch(`${BASE}/movie/${id}/credits?api_key=${API_KEY}&language=en-US`),
-                    fetch(`${BASE}/movie/${id}/videos?api_key=${API_KEY}&language=en-US`)
-                ]);
-                const details = await dRes.json();
-                const credits = await creditsRes.json();
-                const videos = await videosRes.json();
-
-                // populate modal
-                el('#detailPoster').src = details.poster_path ? IMAGE_BASE + details.poster_path : 'https://via.placeholder.com/500x750?text=No+Image';
-                el('#detailTitle').innerText = details.title || details.name;
-                el('#tagline').innerText = details.tagline || '';
-                el('#rating').innerText = details.vote_average ? `⭐ ${details.vote_average.toFixed(1)}` : '';
-                el('#release').innerText = details.release_date ? new Date(details.release_date).toLocaleDateString() : '';
-                el('#genresSmall').innerText = (details.genres || []).map(g => g.name).join(' • ');
-                el('#runtime').innerText = details.runtime ? `${details.runtime}m` : '';
-                el('#metaSmall').innerText = `${details.original_language?.toUpperCase() || ''} • ${details.production_countries?.map(c=>c.iso_3166_1).join(', ') || ''}`;
-                el('#overview').innerText = details.overview || 'No overview available.';
-
-                // cast list
-                const cast = (credits.cast || []).slice(0, 12);
-                el('#castList').innerHTML = cast.map(c => `
-      <div class="w-28 text-center">
-        <img class="w-24 h-32 object-cover rounded-md" src="${c.profile_path ? IMAGE_BASE + c.profile_path : 'https://via.placeholder.com/200x300?text=No+Image'}" alt="${escapeHtml(c.name)}">
-        <div class="text-sm mt-1">${escapeHtml(c.name)}</div>
-        <div class="text-xs text-gray-400">${escapeHtml(c.character || '')}</div>
-      </div>`).join('');
-
-                // crew
-                const importantCrew = (credits.crew || []).filter(c => ['Director', 'Screenplay', 'Writer', 'Producer'].includes(c.job)).slice(0, 10);
-                el('#crewList').innerHTML = importantCrew.map(c => `<div><strong>${escapeHtml(c.job)}:</strong> ${escapeHtml(c.name)}</div>`).join('');
-
-                // videos
-                const vids = (videos.results || []).filter(v => ['Trailer', 'Teaser', 'Clip'].includes(v.type));
-                el('#videoList').innerHTML = vids.map(v => `<button class="px-3 py-2 rounded-md bg-slate-800" onclick="playYoutube('${v.site}','${v.key}')">${escapeHtml(v.name)}</button>`).join('') || '<div class="text-gray-500">No videos available</div>';
-
-                // wire watch button: prefer YouTube trailer, otherwise attempt archive search
-                el('#watchBtn').onclick = async() => {
-                    // prefer YouTube Trailer
-                    const yt = vids.find(v => v.site === 'YouTube');
-                    if (yt) {
-                        openWatch(`https://www.youtube.com/embed/${yt.key}?autoplay=1`);
-                        return;
-                    }
-                    // else try Archive.org search
-                    const found = await searchArchive(details.title, details.release_date ? .slice(0, 4));
-                    if (found) {
-                        openWatch(`https://archive.org/embed/${found}`);
-                    } else {
-                        alert("No playable version found on Archive.org. Trailer might be available.");
-                    }
-                };
-
-                // Watchlist button
-                const addBtn = el('#addWatchlistBtn');
-                addBtn.innerText = isInWatchlist(details.id) ? '✓ In Watchlist' : '+ Watchlist';
-                addBtn.onclick = () => {
-                    toggleWatchlist(details);
-                    addBtn.innerText = isInWatchlist(details.id) ? '✓ In Watchlist' : '+ Watchlist';
-                    updateWatchlistCount();
-                };
-
-                // show modal
-                show(el('#detailsModal'));
-            } catch (err) {
-                console.error(err);
-                alert('Failed to load details. Check console.');
-            }
-        }
-
-        /* close details */
-        function closeDetails() {
-            hide(el('#detailsModal'));
-        }
-
-        /* play youtube */
-        function playYoutube(site, key) {
-            if (site === 'YouTube') {
-                openWatch(`https://www.youtube.com/embed/${key}?autoplay=1`);
-            } else {
-                alert('Video site not supported for quick play.');
-            }
-        }
-
-        /* Watch modal open/close */
-        function openWatch(src) {
-            const watchArea = el('#watchArea');
-            watchArea.innerHTML = `<iframe src="${src}" class="w-full h-full" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-            show(el('#watchModal'));
-        }
-
-        function closeWatch() {
-            el('#watchArea').innerHTML = '';
-            hide(el('#watchModal'));
-        }
-
-        /* ============================
-           Archive.org search helper
-           Searches Archive.org for movie title + year and returns identifier if found
-           ============================ */
-        async function searchArchive(title, year) {
-            try {
-                let q = `title:("${title}") AND mediatype:(movies)`;
-                if (year) q += ` AND date:[${year} TO ${year}]`;
-                const url = `https://archive.org/advancedsearch.php?q=${encodeURIComponent(q)}&fl=identifier,title,year&output=json&rows=5`;
-                const res = await fetch(url);
-                const data = await res.json();
-                const docs = data.response ? .docs || [];
-                if (docs.length > 0) {
-                    // pick best candidate
-                    return docs[0].identifier;
-                }
-                return null;
-            } catch (err) {
-                console.error('Archive search failed', err);
-                return null;
-            }
-        }
-
-        /* ============================
-           Watchlist (localStorage)
-           ============================ */
-        function getWatchlist() {
-            return JSON.parse(localStorage.getItem('abhiflix_watchlist') || '[]');
-        }
-
-        function saveWatchlist(list) {
-            localStorage.setItem('abhiflix_watchlist', JSON.stringify(list));
-        }
-
-        function isInWatchlist(id) {
-            return getWatchlist().some(m => m.id === id);
-        }
-
-        function toggleWatchlist(details) {
-            const list = getWatchlist();
-            const exists = list.find(m => m.id === details.id);
-            if (exists) {
-                saveWatchlist(list.filter(m => m.id !== details.id));
-            } else {
-                // minimal info to show later
-                list.push({
-                    id: details.id,
-                    title: details.title,
-                    poster_path: details.poster_path
-                });
-                saveWatchlist(list);
-            }
-            renderWatchlist();
-        }
-
-        function updateWatchlistCount() {
-            el('#watchlistCount').innerText = getWatchlist().length;
-        }
-
-        /* drawer */
-        function openWatchlist() {
-            renderWatchlist();
-            el('#watchlistDrawer').style.transform = 'translateX(0)';
-        }
-
-        function closeWatchlist() {
-            el('#watchlistDrawer').style.transform = 'translateX(100%)';
-        }
-
-        function renderWatchlist() {
-            const items = getWatchlist();
-            updateWatchlistCount();
-            const wrap = el('#watchlistItems');
-            if (!wrap) return;
-            if (items.length === 0) {
-                wrap.innerHTML = '<div class="text-gray-400">Your watchlist is empty.</div>';
-                return;
-            }
-            wrap.innerHTML = items.map(it => `
-    <div class="flex items-center gap-3 p-2 border-b border-slate-800">
-      <img src="${it.poster_path ? IMAGE_BASE + it.poster_path : 'https://via.placeholder.com/80x120?text=No'}" class="w-16 h-24 object-cover rounded" />
-      <div class="flex-1">
-        <div class="font-semibold">${escapeHtml(it.title)}</div>
-        <div class="text-xs text-gray-400">Movie</div>
-        <div class="mt-2 flex gap-2">
-          <button onclick="openDetails(${it.id})" class="px-2 py-1 rounded bg-slate-800 text-sm">Details</button>
-          <button onclick="removeFromWatchlist(${it.id})" class="px-2 py-1 rounded bg-red-600 text-sm">Remove</button>
+        <div class="w-full md:w-2/5">
+          <div class="flex w-full gap-2">
+            <input id="searchInput" type="search" placeholder="Search movies..." class="w-full px-4 py-2 rounded-md text-gray-900 focus:outline-none" />
+            <button id="searchBtn" class="px-4 py-2 rounded-md bg-teal-500 hover:bg-teal-600">Search</button>
+          </div>
         </div>
       </div>
     </div>
-  `).join('');
-        }
+  </header>
 
-        function removeFromWatchlist(id) {
-            saveWatchlist(getWatchlist().filter(m => m.id !== id));
-            renderWatchlist();
-            updateWatchlistCount();
-        }
+  <!-- Main -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h2 id="sectionTitle" class="text-2xl font-bold mb-4">🔥 Trending Movies</h2>
+    <div id="moviesWrapper" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+    <div class="flex justify-center mt-6">
+      <button id="loadMoreBtn" class="px-6 py-2 rounded-md bg-slate-800 hover:bg-slate-700">Load more</button>
+    </div>
+  </main>
 
-        /* sharing/copy */
-        function copyShare() {
-            const title = el('#detailTitle').innerText;
-            const url = location.href;
-            navigator.clipboard ? .writeText(`${title} — ${url}`).then(() => alert('Copied to clipboard'));
-        }
+  <!-- Details Modal -->
+  <div id="detailsModal" class="hidden fixed inset-0 z-50 flex items-start justify-center py-10 px-4 overflow-y-auto">
+    <div id="detailsBackdrop" class="absolute inset-0 bg-black/70"></div>
+    <div class="relative w-full max-w-5xl bg-slate-900 rounded-xl glass overflow-hidden shadow-2xl z-60 p-6">
+      <div class="flex flex-col lg:flex-row gap-6">
+        <img id="detailPoster" class="w-64 h-96 object-cover rounded-md" alt="">
+        <div>
+          <h3 id="detailTitle" class="text-2xl font-extrabold"></h3>
+          <p id="overview" class="mt-3 text-gray-300"></p>
+          <div class="mt-4 flex gap-3">
+            <button id="watchBtn" class="px-3 py-2 bg-teal-500 rounded-md">▶ Watch</button>
+            <button id="addWatchlistBtn" class="px-3 py-2 bg-slate-800 rounded-md">+ Watchlist</button>
+            <button onclick="closeDetails()" class="px-3 py-2 bg-red-600 rounded-md">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        /* ============================
-           Initial category load helper
-           ============================ */
-        async function loadMovies(reset = false) {
-            await loadMoviesInternal(reset);
-        }
-        async function loadMoviesInternal(reset = false) {
-            // wrapper to keep function name consistent earlier
-            return await loadMovies(reset);
-        }
+  <script>
+  const API_KEY = "3207763a6b035e30d529f20b85bcccb4"; // ✅ TMDB key
+  const BASE = "https://api.themoviedb.org/3";
+  const IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 
-        /* Note: to keep earlier loadMovies usage consistent, we alias */
-        const loadMoviesAlias = loadMovies;
+  let page = 1;
+  let currentCategory = "trending";
+  let currentQuery = "";
 
-        /* ============================
-           Kick off initial load
-           ============================ */
-        async function loadMoviesEntry() {
-            page = 1;
-            currentCategory = 'trending';
-            await loadMovies(true);
-        }
-        loadMoviesEntry();
+  function el(s){return document.querySelector(s)}
 
-        /* small helper to change category externally */
-        window.changeCategory = changeCategory;
-        window.openDetails = openDetails;
-        window.searchMovies = searchMovies;
-        window.setView = setView;
-        window.getCategory = changeCategory;
+  document.addEventListener("DOMContentLoaded", () => {
+    attachUI();
+    loadMovies(true);
+  });
 
-        /* Expose watchlist open */
-        window.openWatchlist = openWatchlist;
+  function attachUI(){
+    el("#searchBtn").onclick = ()=>{ page=1; searchMovies(); }
+    el("#searchInput").onkeydown = e=>{ if(e.key==="Enter"){ page=1; searchMovies(); } }
+    el("#loadMoreBtn").onclick = ()=>{ page++; loadMovies(); }
+    el("#darkToggle").onclick = toggleDark;
+  }
 
-        /* For safety - fallback if same name conflicts */
-        async function loadMovies(reset = false) {
-            // this function is already defined above earlier in code; ensure we call that.
-            return await loadMoviesInternal(reset);
-        }
-    </script>
+  function toggleDark(){
+    document.body.classList.toggle("bg-gray-900");
+    document.body.classList.toggle("bg-white");
+    document.body.classList.toggle("text-white");
+    document.body.classList.toggle("text-black");
+  }
+
+  async function loadMovies(reset=false){
+    const url = currentQuery
+      ? `${BASE}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(currentQuery)}&page=${page}`
+      : `${BASE}/trending/movie/week?api_key=${API_KEY}&page=${page}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const movies = data.results || [];
+    renderMovies(movies, reset);
+  }
+
+  function renderMovies(movies, reset){
+    const wrap = el("#moviesWrapper");
+    if(reset) wrap.innerHTML="";
+    wrap.insertAdjacentHTML("beforeend", movies.map(m=>{
+      const poster = m.poster_path ? IMAGE_BASE+m.poster_path : "https://via.placeholder.com/300x450?text=No+Image";
+      return `
+        <div onclick="openDetails(${m.id})" class="bg-slate-800 rounded-md overflow-hidden card-hover cursor-pointer">
+          <img src="${poster}" class="w-full h-72 object-cover" />
+          <div class="p-3">
+            <h3 class="font-semibold text-sm">${m.title}</h3>
+            <p class="text-xs text-gray-400 mt-1">${m.release_date||""}</p>
+          </div>
+        </div>`;
+    }).join(""));
+  }
+
+  async function openDetails(id){
+    const res = await fetch(`${BASE}/movie/${id}?api_key=${API_KEY}&language=en-US`);
+    const data = await res.json();
+    el("#detailPoster").src = data.poster_path ? IMAGE_BASE+data.poster_path : "";
+    el("#detailTitle").innerText = data.title;
+    el("#overview").innerText = data.overview;
+    el("#watchBtn").onclick = ()=>window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(data.title+" trailer")}`,"_blank");
+    show(el("#detailsModal"));
+  }
+
+  function closeDetails(){ hide(el("#detailsModal")); }
+
+  function show(e){ e.classList.remove("hidden"); document.body.classList.add("modal-open"); }
+  function hide(e){ e.classList.add("hidden"); document.body.classList.remove("modal-open"); }
+
+  function searchMovies(){
+    currentQuery = el("#searchInput").value.trim();
+    loadMovies(true);
+  }
+  </script>
 </body>
-
 </html>
